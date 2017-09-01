@@ -7,25 +7,33 @@ trinity_fasta="data/Trinity.fasta"
 
 #results files
 transdecoder_results="output/transdecoder/Trinity.fasta.transdecoder.pep"
-blastp_results="output/blastp/blastp.outfmt6"
 blast_db="bin/trinotate/db/uniprot_sprot.pep"
+blastp_results="output/blastp/blastp.outfmt6"
 blastx_results="output/blastx/blastx.outfmt6"
+hmmer_db="bin/trinotate/trinotate/Pfam-A.hmm"
 hmmer_results="output/hmmer/TrinotatePFAM.out"
 rnammer_results="output/rnammer/Trinity.fasta.rnammer.gff"
 tmhmm_results="output/tmhmm/tmhmm.out"
 renamed_transdecoder="output/signalp/renamed_transdecoder_results.fasta"
+ids="output/signalp/ids.csv"
 signalp_results="output/signalp/signalp.out"
 signalp_gff="output/signalp/signalp.gff"
 signalp_renamed_gff="output/signalp/renamed_signalp_gff.gff2"
 trinotate_database="output/trinotate/Trinotate.sqlite"
 trinity_gene_trans_map="output/trinotate/Trinity.fasta.gene_trans_map"
 trinotate_annotation_report="output/trinotate/trinotate_annotation_report.txt"
+sqlite_db="bin/trinotate/db/Trinotate.sqlite"
 
 #intermediate files
-transdecoder_directory=os.path.split(transdecoder_results)[0]
 log_directory="output/logs"
+transdecoder_directory=os.path.split(transdecoder_results)[0]
+rnammer_directory=os.path.split(rnammer_results)[0]
 
 #rules
+rule all:
+	input:
+		trinotate_annotation_report
+
 rule run_transdecoder:
 	input:
 		trinity_fasta=trinity_fasta
@@ -81,84 +89,133 @@ rule run_blastx:
 
 rule run_hmmer:
 	input:
-		transdecoder_results
+		transdecoder_results=transdecoder_results
+		db=hmmer_db
 	output:
-		touch(hmmer_results)
+		hmmer_results
+	threads:
+		50
+	log:
+		os.path.join(log_directory, 'hmmer.log')
 	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		'hmmscan '
+		'--cpu {threads} '
+		'--domtblout {output} '
+		'{input.db} '
+		'{input.transdecoder_results} '
+		'> {log}'
 
 rule run_rnammer:
 	input:
 		trinity_fasta
 	output:
-		touch(rnammer_results)
+		rnammer_results,
+		rn_fasta=temp(os.path.join(rnammer_directory,'Trinity.fasta')),
+		w_dir=rnammer_directory
+	threads:
+		1
 	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		'cp {input.trinity_fasta} {output.td_fasta} ; '
+		'cd {output.w_dir} ; '
+		'RnmmerTranscriptome.pl '
+		'--transcriptome {output.rn_fasta} '
+		'--path_to_rnammer "$(which rnammer)'
 
 rule run_tmhmm:
 	input:
 		transdecoder_results
 	output:
-		touch(tmhmm_results)
+		tmhmm_results
+	log:
+		os.path.join(log_directory, 'tmhmm.log')
+	threads:
+		1
 	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		'tmhmm_path="$(readlink -f "$(which tmhmm)")"  ; '
+		'"${tmhmm_path}" '
+		'-short '
+		'< {input} '
+		'> {output} '
+		'2> {log}'
 
 rule run_rename_transdecoder:
 	input:
-		transdecoder_results
+		transdecoder_results=transdecoder_results
 	output:
-		touch(renamed_transdecoder)
-	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		renamed_transdecoder=renamed_transdecoder,
+		ids=ids
+	script:
+		src/rename_fasta_headers.py
 
 rule run_signalp:
 	input:
 		renamed_transdecoder
 	output:
-		touch(signalp_results),
-		touch(signalp_gff)
+		results=signalp_results,
+		gff=signalp_gff
+	threads:
+		1
 	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		'signalp '
+		'-f short '
+		'-n {output.gff} '
+		'{input} '
+		'> {output.results}'
 
 rule run_rename_signalp_gff:
 	input:
-		signalp_gff
+		signalp_gff=signalp_gff,
+		ids=ids
 	output:
-		touch(signalp_renamed_gff)
-	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		signalp_renamed_gff=signalp_renamed_gff
+	script:
+		src/rename_gff.R
 
 rule run_gene_to_trans_map:
 	input:
 		trinity_fasta
 	output:
-		touch(trinity_gene_trans_map)
+		trinity_gene_trans_map
 	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		'get_Trinity_gene_to_trans_map.pl '
+		'{input} '
+		'> {output}'
 
 rule run_load_trinotate_results:
 	input:
-		trinity_fasta,
-		trinity_gene_trans_map,
-		transdecoder_results,
-		blastx_results,
-		blastp_results,
-		hmmer_results,
-		signalp_renamed_gff,
-		tmhmm_results,
-		rnammer_results
+		fasta=trinity_fasta,
+		gene_trans_map=trinity_gene_trans_map,
+		transdecoder=transdecoder_results,
+		blastx=blastx_results,
+		blastp=blastp_results,
+		hmmer=hmmer_results,
+		signalp=signalp_renamed_gff,
+		tmhmm=tmhmm_results,
+		rnammer=rnammer_results
+		db=sqlite_db
 	output:
-		touch(trinotate_database)
+		trinotate_database
 	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		'cp {input.db} {output} ; '
+		'Trinotate '
+		'{output} init '
+		'--gene_trans_map {input.gene_trans_map} '
+		'--transcript_fasta {input.fasta} '
+		'transdecoder_pep {input.transdecoder} ; '
+		'Trinotate {output} LOAD_swissprot_blastx {input.blastx} ; '
+		'Trinotate {output} LOAD_swissprot_blastp {input.blastp} ; '
+		'Trinotate {output} LOAD_pfam {input.hmmer} ; '
+		'Trinotate {output} LOAD_signalp {input.signalp} ; '
+		'Trinotate {output} LOAD_tmhmm {input.tmhmm} ; '
+		'Trinotate {output} LOAD_rnammer {input.rnammer} ; '
 
 rule run_trinotate_report:
 	input:
 		trinotate_database
 	output:
-		touch(trinotate_annotation_report)
+		trinotate_annotation_report
 	shell:
-		'printf "input:\t%s\noutput\t%s\n" {input} {output}'
+		'Trinotate {input} report > {output}'
 
 
 
