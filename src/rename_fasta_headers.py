@@ -7,7 +7,7 @@ import csv
 transdecoder_results = snakemake.input['transdecoder_results']
 records = list(SeqIO.parse(transdecoder_results, 'fasta'))
 # output variable
-renamed_transdecoder_results = snakemake.output['renamed_transdecoder_results']
+renamed_transdecoder = snakemake.output['renamed_transdecoder']
 ids=snakemake.output['ids']
 
 # declare dictionaries
@@ -40,5 +40,5 @@ with open( ids, 'w', newline='') as csvfile:
 # write renamed fasta
 SeqIO.write(
     sequences=records,
-    handle=renamed_transdecoder_results,
+    handle=renamed_transdecoder,
     format='fasta')

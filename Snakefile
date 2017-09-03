@@ -89,7 +89,7 @@ rule run_blastx:
 
 rule run_hmmer:
 	input:
-		transdecoder_results=transdecoder_results
+		transdecoder_results=transdecoder_results,
 		db=hmmer_db
 	output:
 		hmmer_results
@@ -107,7 +107,7 @@ rule run_hmmer:
 
 rule run_rnammer:
 	input:
-		trinity_fasta
+		trinity_fasta=trinity_fasta
 	output:
 		rnammer_results,
 		rn_fasta=temp(os.path.join(rnammer_directory,'Trinity.fasta')),
@@ -115,7 +115,7 @@ rule run_rnammer:
 	threads:
 		1
 	shell:
-		'cp {input.trinity_fasta} {output.td_fasta} ; '
+		'cp {input.trinity_fasta} {output.rn_fasta} ; '
 		'cd {output.w_dir} ; '
 		'RnmmerTranscriptome.pl '
 		'--transcriptome {output.rn_fasta} '
@@ -131,8 +131,8 @@ rule run_tmhmm:
 	threads:
 		1
 	shell:
-		'tmhmm_path="$(readlink -f "$(which tmhmm)")"  ; '
-		'"${tmhmm_path}" '
+		'tmhmm_path="$(readlink -f "$(which tmhmm)")" ; '
+		'"$(tmhmm_path)" '
 		'-short '
 		'< {input} '
 		'> {output} '
@@ -145,7 +145,7 @@ rule run_rename_transdecoder:
 		renamed_transdecoder=renamed_transdecoder,
 		ids=ids
 	script:
-		src/rename_fasta_headers.py
+		"src/rename_fasta_headers.py"
 
 rule run_signalp:
 	input:
@@ -154,7 +154,7 @@ rule run_signalp:
 		results=signalp_results,
 		gff=signalp_gff
 	threads:
-		1
+		4
 	shell:
 		'signalp '
 		'-f short '
@@ -169,7 +169,7 @@ rule run_rename_signalp_gff:
 	output:
 		signalp_renamed_gff=signalp_renamed_gff
 	script:
-		src/rename_gff.R
+		"src/rename_gff.R"
 
 rule run_gene_to_trans_map:
 	input:
@@ -191,7 +191,7 @@ rule run_load_trinotate_results:
 		hmmer=hmmer_results,
 		signalp=signalp_renamed_gff,
 		tmhmm=tmhmm_results,
-		rnammer=rnammer_results
+		rnammer=rnammer_results,
 		db=sqlite_db
 	output:
 		trinotate_database
