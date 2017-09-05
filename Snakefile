@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
+import pathlib
+
+#resolve path
+which_tmhmm=shutil.which('tmhmm')
+tmhmm_path=str(pathlib.Path(which_tmhmm).resolve())
+which_rnammer=shutil.which('rnammer')
+rnammer_path=str(pathlib.Path(which_rnammer).resolve())
 
 #data file
 trinity_fasta="data/Trinity.fasta"
@@ -47,7 +55,7 @@ rule run_transdecoder:
 		'cp {input.trinity_fasta} {output.td_fasta} ; '
 		'cd {output.w_dir} ; '
 		'TransDecoder.LongOrfs -t Trinity.fasta -S ; '
-		'TransDecoder.Predict -t Trinity.fasta'
+		'TransDecoder.Predict -t Trinity.fasta '
 
 rule run_blastp:
 	input:
@@ -117,9 +125,9 @@ rule run_rnammer:
 	shell:
 		'cp {input.trinity_fasta} {output.rn_fasta} ; '
 		'cd {output.w_dir} ; '
-		'RnmmerTranscriptome.pl '
-		'--transcriptome {output.rn_fasta} '
-		'--path_to_rnammer "$(which rnammer)'
+		'RnammerTranscriptome.pl '
+		'--transcriptome Trinity.fasta '
+		'--path_to_rnammer {rnammer_path}'
 
 rule run_tmhmm:
 	input:
@@ -129,10 +137,9 @@ rule run_tmhmm:
 	log:
 		os.path.join(log_directory, 'tmhmm.log')
 	threads:
-		1
+		2
 	shell:
-		'tmhmm_path="$(readlink -f "$(which tmhmm)")" ; '
-		'"$(tmhmm_path)" '
+		'{tmhmm_path} '
 		'-short '
 		'< {input} '
 		'> {output} '
