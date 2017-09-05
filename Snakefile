@@ -208,7 +208,7 @@ rule run_load_trinotate_results:
 		'{output} init '
 		'--gene_trans_map {input.gene_trans_map} '
 		'--transcript_fasta {input.fasta} '
-		'transdecoder_pep {input.transdecoder} ; '
+		'--transdecoder_pep {input.transdecoder} ; '
 		'Trinotate {output} LOAD_swissprot_blastx {input.blastx} ; '
 		'Trinotate {output} LOAD_swissprot_blastp {input.blastp} ; '
 		'Trinotate {output} LOAD_pfam {input.hmmer} ; '
