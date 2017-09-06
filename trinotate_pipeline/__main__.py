@@ -116,8 +116,9 @@ def main():
             pref = '{} version'.format(binary)
             print('{:>38}: {}'.format(pref, version))
 
-    # add the dict to args
-    args['binaries'] = binary_to_full_path
+    # add the binaries to args
+    for binary in binary_to_full_path:
+        args[binary] = binary_to_full_path[binary]
 
     # run the pipeline
     snakemake.snakemake(

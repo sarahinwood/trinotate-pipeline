@@ -5,8 +5,20 @@
 # GLOBALS #
 ###########
 
+# binaries
+blastp = config['blastp']
+blastx = config['blastx']
+get_Trinity_gene_to_trans_map_pl = config['get_Trinity_gene_to_trans_map.pl']
+hmmscan = ['hmmscan']
+rnammer = config['rnammer']
+RnammerTranscriptome_pl = config['RnammerTranscriptome.pl']
+tmhmm = config['tmhmm']
+signalp = config['signalp']
+TransDecoder_LongOrfs = config['TransDecoder.LongOrfs']
+TransDecoder_Predict = config['TransDecoder.Predict']
+Trinotate = config['Trinotate']
+
 # from config
-binaries = config['binaries']
 blast_db = config['blast_db']
 hmmer_db = config['hmmer_db']
 max_threads = config['threads']
@@ -72,8 +84,8 @@ rule run_transdecoder:
     shell:
         'cp {input.trinity_fasta} {output.td_fasta} ; '
         'cd {output.w_dir} ; '
-        'TransDecoder.LongOrfs -t Trinity.fasta -S ; '
-        'TransDecoder.Predict -t Trinity.fasta '
+        '{TransDecoder_LongOrfs} -t Trinity.fasta -S ; '
+        '{TransDecoder_Predict} -t Trinity.fasta '
 
 rule run_blastp:
     input:
@@ -86,7 +98,7 @@ rule run_blastp:
     log:
         os.path.join(log_directory, 'blastp.log')
     shell:
-        'blastp '
+        '{blastp} '
         '-db {input.db} '
         '-query {input.transdecoder_results} '
         '-num_threads {threads} '
@@ -105,7 +117,7 @@ rule run_blastx:
     log:
         os.path.join(log_directory, 'blastx.log')
     shell:
-        'blastx '
+        '{blastx} '
         '-db {input.db} '
         '-query {input.trinity_fasta} '
         '-num_threads {threads} '
@@ -124,7 +136,7 @@ rule run_hmmer:
     log:
         os.path.join(log_directory, 'hmmer.log')
     shell:
-        'hmmscan '
+        '{hmmscan} '
         '--cpu {threads} '
         '--domtblout {output} '
         '{input.db} '
@@ -143,9 +155,9 @@ rule run_rnammer:
     shell:
         'cp {input.trinity_fasta} {output.rn_fasta} ; '
         'cd {output.w_dir} ; '
-        'RnammerTranscriptome.pl '
+        '{RnammerTranscriptome_pl} '
         '--transcriptome Trinity.fasta '
-        '--path_to_rnammer {rnammer_path}'
+        '--path_to_rnammer {rnammer}'
 
 rule run_tmhmm:
     input:
@@ -157,7 +169,7 @@ rule run_tmhmm:
     threads:
         2
     shell:
-        '{tmhmm_path} '
+        '{tmhmm} '
         '-short '
         '< {input} '
         '> {output} '
@@ -170,7 +182,7 @@ rule run_rename_transdecoder:
         renamed_transdecoder = renamed_transdecoder,
         ids = ids
     script:
-        'src/rename_fasta_headers.py'
+        'rename_fasta_headers.py'
 
 rule run_signalp:
     input:
@@ -181,7 +193,7 @@ rule run_signalp:
     threads:
         4
     shell:
-        'signalp '
+        '{signalp} '
         '-f short '
         '-n {output.gff} '
         '{input} '
@@ -194,7 +206,7 @@ rule run_rename_signalp_gff:
     output:
         signalp_renamed_gff = signalp_renamed_gff
     script:
-        'src/rename_gff.R'
+        'rename_gff.R'
 
 rule run_gene_to_trans_map:
     input:
@@ -202,7 +214,7 @@ rule run_gene_to_trans_map:
     output:
         trinity_gene_trans_map
     shell:
-        'get_Trinity_gene_to_trans_map.pl '
+        '{get_Trinity_gene_to_trans_map_pl} '
         '{input} '
         '> {output}'
 
@@ -222,17 +234,17 @@ rule run_load_trinotate_results:
         trinotate_database
     shell:
         'cp {input.db} {output} ; '
-        'Trinotate '
+        '{Trinotate} '
         '{output} init '
         '--gene_trans_map {input.gene_trans_map} '
         '--transcript_fasta {input.fasta} '
         '--transdecoder_pep {input.transdecoder} ; '
-        'Trinotate {output} LOAD_swissprot_blastx {input.blastx} ; '
-        'Trinotate {output} LOAD_swissprot_blastp {input.blastp} ; '
-        'Trinotate {output} LOAD_pfam {input.hmmer} ; '
-        'Trinotate {output} LOAD_signalp {input.signalp} ; '
-        'Trinotate {output} LOAD_tmhmm {input.tmhmm} ; '
-        'Trinotate {output} LOAD_rnammer {input.rnammer} '
+        '{Trinotate} {output} LOAD_swissprot_blastx {input.blastx} ; '
+        '{Trinotate} {output} LOAD_swissprot_blastp {input.blastp} ; '
+        '{Trinotate} {output} LOAD_pfam {input.hmmer} ; '
+        '{Trinotate} {output} LOAD_signalp {input.signalp} ; '
+        '{Trinotate} {output} LOAD_tmhmm {input.tmhmm} ; '
+        '{Trinotate} {output} LOAD_rnammer {input.rnammer} '
 
 rule run_trinotate_report:
     input:
@@ -240,4 +252,4 @@ rule run_trinotate_report:
     output:
         trinotate_annotation_report
     shell:
-        'Trinotate {input} report > {output}'
+        '{Trinotate} {input} report > {output}'
