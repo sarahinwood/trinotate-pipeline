@@ -32,6 +32,17 @@ def check_binary_version(binary_path, version_suffix):
     return version_string.replace('\n', ' ')
 
 
+def check_r_package(r_package):
+    r_expression = ('x = "{}";'
+                    'if (!requireNamespace(x, quietly = TRUE))'
+                    '{{quit(status = "1")}}').format(r_package)
+    try:
+        subprocess.check_call(['Rscript', '-e', r_expression])
+    except:
+        raise EnvironmentError(
+            'R package {} not installed'.format(r_package))
+
+
 ###########
 # GLOBALS #
 ###########
@@ -52,6 +63,10 @@ binary_to_version_suffix = {
     'Trinotate': None
 }
 
+r_packages = [
+    'data.table',
+    'rtracklayer'
+]
 
 ########
 # MAIN #
@@ -119,6 +134,10 @@ def main():
     # add the binaries to args
     for binary in binary_to_full_path:
         args[binary] = binary_to_full_path[binary]
+
+    # check if the required R packages are installed
+    for x in r_packages:
+        check_r_package(x)
 
     # run the pipeline
     snakemake.snakemake(

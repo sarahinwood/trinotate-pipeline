@@ -4,12 +4,13 @@
 from Bio import SeqIO
 import csv
 
-# load files
+# snakemake files
 transdecoder_results = snakemake.input['transdecoder_results']
-records = list(SeqIO.parse(transdecoder_results, 'fasta'))
-# output variable
 renamed_transdecoder = snakemake.output['renamed_transdecoder']
-ids=snakemake.output['ids']
+ids = snakemake.output['ids']
+
+# read FASTA
+records = list(SeqIO.parse(transdecoder_results, 'fasta'))
 
 # declare dictionaries
 pepid_to_id = {}
@@ -33,7 +34,7 @@ result_lines = list([x, pepid_to_id[x]]
 
 # write id mapping to file
 header = ['pepid', 'id']
-with open( ids, 'w', newline='') as csvfile:
+with open(ids, 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
     writer.writerow(header)
     writer.writerows(result_lines)

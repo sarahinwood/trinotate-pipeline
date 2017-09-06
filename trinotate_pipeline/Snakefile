@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from trinotate_pipeline.__main__ import get_full_path
+
 ###########
 # GLOBALS #
 ###########
@@ -63,6 +65,9 @@ trinity_gene_trans_map = os.path.join(
     outdir,
     'trinotate/Trinity.fasta.gene_trans_map')
 
+# script paths
+rename_fasta_headers = get_full_path('rename_fasta_headers.py')
+rename_gff = get_full_path('rename_gff.R')
 
 #########
 # RULES #
@@ -175,14 +180,19 @@ rule run_tmhmm:
         '> {output} '
         '2> {log}'
 
+# this is not working because snakemake looks for the script in the wrong
+# directory (venv/lib/python3.5/site-packages/trinotate_pipeline/). It appears
+# to look in the same directory as the snakefile.
 rule run_rename_transdecoder:
     input:
         transdecoder_results = transdecoder_results
     output:
         renamed_transdecoder = renamed_transdecoder,
         ids = ids
+    threads:
+        1
     script:
-        'rename_fasta_headers.py'
+        '{rename_fasta_headers}'
 
 rule run_signalp:
     input:
@@ -205,14 +215,18 @@ rule run_rename_signalp_gff:
         ids = ids
     output:
         signalp_renamed_gff = signalp_renamed_gff
+    threads:
+        1
     script:
-        'rename_gff.R'
+        '{rename_gff}'
 
 rule run_gene_to_trans_map:
     input:
         trinity_fasta
     output:
         trinity_gene_trans_map
+    threads:
+        1
     shell:
         '{get_Trinity_gene_to_trans_map_pl} '
         '{input} '
@@ -232,6 +246,8 @@ rule run_load_trinotate_results:
         db = sqlite_db
     output:
         trinotate_database
+    threads:
+        1
     shell:
         'cp {input.db} {output} ; '
         '{Trinotate} '
@@ -251,5 +267,7 @@ rule run_trinotate_report:
         trinotate_database
     output:
         trinotate_annotation_report
+    threads:
+        1
     shell:
         '{Trinotate} {input} report > {output}'
