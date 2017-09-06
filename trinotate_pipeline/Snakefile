@@ -73,11 +73,7 @@ rename_gff = get_full_path('rename_gff.R')
 # RULES #
 #########
 
-rule all:
-    input:
-        trinotate_annotation_report
-
-rule run_transdecoder:
+rule TransDecoder:
     input:
         trinity_fasta = trinity_fasta
     output:
@@ -92,7 +88,7 @@ rule run_transdecoder:
         '{TransDecoder_LongOrfs} -t Trinity.fasta -S ; '
         '{TransDecoder_Predict} -t Trinity.fasta '
 
-rule run_blastp:
+rule blastp:
     input:
         transdecoder_results = transdecoder_results,
         db = blast_db
@@ -111,7 +107,7 @@ rule run_blastp:
         '-outfmt 6 > {output} '
         '2> {log}'
 
-rule run_blastx:
+rule blastx:
     input:
         trinity_fasta = trinity_fasta,
         db = blast_db
@@ -130,14 +126,14 @@ rule run_blastx:
         '-outfmt 6 > {output} '
         '2> {log}'
 
-rule run_hmmer:
+rule hmmscan:
     input:
         transdecoder_results = transdecoder_results,
         db = hmmer_db
     output:
         hmmer_results
     threads:
-        max_threads
+        4
     log:
         os.path.join(log_directory, 'hmmer.log')
     shell:
@@ -148,7 +144,7 @@ rule run_hmmer:
         '{input.transdecoder_results} '
         '> {log}'
 
-rule run_rnammer:
+rule RnammerTranscriptome_pl:
     input:
         trinity_fasta = trinity_fasta
     output:
@@ -164,7 +160,7 @@ rule run_rnammer:
         '--transcriptome Trinity.fasta '
         '--path_to_rnammer {rnammer}'
 
-rule run_tmhmm:
+rule tmhmm:
     input:
         transdecoder_results
     output:
@@ -180,10 +176,7 @@ rule run_tmhmm:
         '> {output} '
         '2> {log}'
 
-# this is not working because snakemake looks for the script in the wrong
-# directory (venv/lib/python3.5/site-packages/trinotate_pipeline/). It appears
-# to look in the same directory as the snakefile.
-rule run_rename_transdecoder:
+rule rename_fasta_headers:
     input:
         transdecoder_results = transdecoder_results
     output:
@@ -194,7 +187,7 @@ rule run_rename_transdecoder:
     script:
         '{}'.format(rename_fasta_headers)
 
-rule run_signalp:
+rule signalp:
     input:
         renamed_transdecoder
     output:
@@ -209,7 +202,7 @@ rule run_signalp:
         '{input} '
         '> {output.results}'
 
-rule run_rename_signalp_gff:
+rule rename_gff:
     input:
         signalp_gff = signalp_gff,
         ids = ids
@@ -220,7 +213,7 @@ rule run_rename_signalp_gff:
     script:
         '{}'.format(rename_gff)
 
-rule run_gene_to_trans_map:
+rule get_Trinity_gene_to_trans_map_pl:
     input:
         trinity_fasta
     output:
@@ -232,7 +225,7 @@ rule run_gene_to_trans_map:
         '{input} '
         '> {output}'
 
-rule run_load_trinotate_results:
+rule Trinotate_LOAD:
     input:
         fasta = trinity_fasta,
         gene_trans_map = trinity_gene_trans_map,
@@ -262,7 +255,7 @@ rule run_load_trinotate_results:
         '{Trinotate} {output} LOAD_tmhmm {input.tmhmm} ; '
         '{Trinotate} {output} LOAD_rnammer {input.rnammer} '
 
-rule run_trinotate_report:
+rule Trinotate_report:
     input:
         trinotate_database
     output:

@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import io
 import shutil
 import snakemake
 import subprocess
+import sys
 import os
 import pathlib
 from pkg_resources import resource_filename
@@ -13,7 +15,6 @@ from pkg_resources import resource_filename
 #############
 # FUNCTIONS #
 #############
-
 
 def get_full_path(binary):
     which = shutil.which(binary)
@@ -43,6 +44,30 @@ def check_r_package(r_package):
             'R package {} not installed'.format(r_package))
 
 
+# graph printing
+def print_graph(snakefile, config, targets, dag_file):
+    # store old stdout
+    stdout = sys.stdout
+    # call snakemake api and capture output
+    sys.stdout = io.StringIO()
+    snakemake.snakemake(
+        snakefile,
+        config=config,
+        targets=targets,
+        dryrun=True,
+        printdag=True)
+    output = sys.stdout.getvalue()
+    # restore sys.stdout
+    sys.stdout = stdout
+    # pipe the output to dot
+    with open(dag_file, 'wb') as svg:
+        dot_process = subprocess.Popen(
+            ['dot', '-Tsvg'],
+            stdin=subprocess.PIPE,
+            stdout=svg)
+    dot_process.communicate(input=output.encode())
+
+
 ###########
 # GLOBALS #
 ###########
@@ -68,6 +93,7 @@ r_packages = [
     'rtracklayer'
 ]
 
+
 ########
 # MAIN #
 ########
@@ -79,40 +105,56 @@ def main():
     parser.add_argument(
         '--trinity_fasta',
         required=True,
-        help='Trinity.fasta file to annotate',
+        help='Trinity fasta file to annotate',
+        metavar='Trinity.fasta',
         type=str,
         dest='trinity_fasta')
     parser.add_argument(
         '--blast_db',
         required=True,
-        help='Uniprot database for BLAST searches, e.g. uniprot_sprot.pep',
+        help='Uniprot database for BLAST searches',
+        metavar='uniprot_sprot.pep',
         type=str,
         dest='blast_db')
     parser.add_argument(
         '--hmmer_db',
         required=True,
-        help='Pfam database for use with hmmscan, e.g. Pfam-A.hmm',
+        help='Pfam database for use with hmmscan',
+        metavar='Pfam-A.hmm',
         type=str,
         dest='hmmer_db')
     parser.add_argument(
         '--sqlite_db',
         required=True,
-        help='Boilerplate Trinotate SQLite database, e.g. Trinotate.sqlite',
+        help='Boilerplate Trinotate SQLite database',
+        metavar='Trinotate.sqlite',
         type=str,
         dest='sqlite_db')
     parser.add_argument(
         '--outdir',
         required=True,
         help='Output directory',
+        metavar='outdir',
         type=str,
         dest='outdir')
     default_threads = min(os.cpu_count() // 2, 50)
     parser.add_argument(
         '--threads',
         help=('Number of threads. Default: %i' % default_threads),
+        metavar='int',
         type=int,
         dest='threads',
         default=default_threads)
+    parser.add_argument(
+        '--targets',
+        help=('list of target rules '
+              'or file names. Default: Trinotate_report'),
+        metavar='Trinotate_report',
+        type=str,
+        dest='targets',
+        action='append',
+        default='Trinotate_report')
+
     args = vars(parser.parse_args())
 
     # get a dict of full paths to pass to snakemake
@@ -139,10 +181,20 @@ def main():
     for x in r_packages:
         check_r_package(x)
 
+    # print the dag
+    log_directory = os.path.join(args['outdir'], 'logs')
+    if not os.path.isdir(log_directory):
+        os.makedirs(log_directory)
+    print_graph(snakefile,
+                args,
+                args['targets'],
+                os.path.join(log_directory, "graph.svg"))
+
     # run the pipeline
     snakemake.snakemake(
         snakefile=snakefile,
         config=args,
+        targets=args['targets'],
         cores=args['threads'],
         timestamp=True)
 
