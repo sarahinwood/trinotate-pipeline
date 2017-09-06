@@ -17,7 +17,7 @@ def get_full_path(binary):
         raise EnvironmentError(
             'Trinotate dependency {0} not found in $PATH'.format(binary))
     # get the full path to binary
-    binary_path = pathlib.Path(which)
+    binary_path = pathlib.Path(which).resolve()
     return str(binary_path)
 
 
@@ -49,21 +49,18 @@ binary_to_version_suffix = {
 # MAIN #
 ########
 
-# get a dict of full paths to pass to pass to snakemake 
+# get a dict of full paths to pass to snakemake
 binary_to_full_path = {}
 for binary in binary_to_version_suffix:
+    # check binary is in path
     full_path = get_full_path(binary)
     binary_to_full_path[binary] = full_path
+    # print full path
     pref = 'Using {}'.format(binary)
     print('{:>38}: {}'.format(pref, full_path))
+    # if we know how to check the version, do so and print
     if binary_to_version_suffix[binary]:
         suffix = binary_to_version_suffix[binary]
         version = check_binary_version(full_path, suffix)
         pref = '{} version'.format(binary)
         print('{:>38}: {}'.format(pref, version))
-
-
-
-
-
-
