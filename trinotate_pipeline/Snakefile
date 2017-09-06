@@ -192,7 +192,7 @@ rule run_rename_transdecoder:
     threads:
         1
     script:
-        '{rename_fasta_headers}'
+        '{}'.format(rename_fasta_headers)
 
 rule run_signalp:
     input:
@@ -218,7 +218,7 @@ rule run_rename_signalp_gff:
     threads:
         1
     script:
-        '{rename_gff}'
+        '{}'.format(rename_gff)
 
 rule run_gene_to_trans_map:
     input:
