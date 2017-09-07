@@ -165,7 +165,8 @@ def main():
 
     args = vars(parser.parse_args())
     print(args)
-
+    quit(1)
+    
     # get a dict of full paths to pass to snakemake
     binary_to_full_path = {}
     for binary in binary_to_version_suffix:
