@@ -100,16 +100,13 @@ rule blastp:
         blastp_results
     threads:
         max_threads - 1
-    log:
-        os.path.join(log_directory, 'blastp.log')
     shell:
         '{blastp} '
         '-db {input.db} '
         '-query {input.transdecoder_results} '
         '-num_threads {threads} '
         '-max_target_seqs 1 '
-        '-outfmt 6 > {output} '
-        '2> {log}'
+        '-outfmt 6 > {output}'
 
 rule blastx:
     input:
@@ -119,16 +116,13 @@ rule blastx:
         blastx_results
     threads:
         max_threads - 1
-    log:
-        os.path.join(log_directory, 'blastx.log')
     shell:
         '{blastx} '
         '-db {input.db} '
         '-query {input.trinity_fasta} '
         '-num_threads {threads} '
         '-max_target_seqs 1 '
-        '-outfmt 6 > {output} '
-        '2> {log}'
+        '-outfmt 6 > {output}'
 
 rule hmmscan:
     input:
@@ -171,8 +165,6 @@ rule tmhmm:
         transdecoder_results
     output:
         tmhmm_results
-    log:
-        os.path.join(log_directory, 'tmhmm.log')
     threads:
         2
     shell:
@@ -180,7 +172,6 @@ rule tmhmm:
         '-short '
         '< {input} '
         '> {output} '
-        '2> {log}'
 
 rule rename_fasta_headers:
     input:
