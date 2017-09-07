@@ -265,5 +265,7 @@ rule Trinotate_report:
         trinotate_annotation_report
     threads:
         1
+    log:
+        os.path.join(log_directory, 'Trinotate_report.log')
     shell:
-        '{Trinotate} {input} report > {output}'
+        '{Trinotate} {input} report > {output} 2> {log}'
