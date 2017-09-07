@@ -54,7 +54,7 @@ signalp_gff = os.path.join(
 signalp_renamed_gff = os.path.join(
     outdir, 'signalp/renamed_signalp_gff.gff2')
 transdecoder_directory = os.path.join(
-    outdir, 'transdecoder')
+    outdir, 'TransDecoder')
 transdecoder_results = os.path.join(
     transdecoder_directory, 'Trinity.fasta.transdecoder.pep')
 trinotate_annotation_report = os.path.join(
