@@ -8,10 +8,10 @@ A python3 wrapper for the Trinotate_ pipeline, using snakemake_.
 Requirements
 ------------
 
-The Trinotate_ dependencies must be installed and in $PATH:
+The Trinotate_ dependencies must be installed and in ``$PATH``:
 
 * ``TransDecoder``
-* ``blastp`` and ``blastx`
+* ``blastp`` and ``blastx``
 * ``hmmscan``
 * The ``Trinity`` script ``get_Trinity_gene_to_trans_map.pl``
 * ``Trinotate`` and the ``Trinotate`` script ``RnammerTranscriptome.pl`` 
