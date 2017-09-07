@@ -82,11 +82,13 @@ rule TransDecoder:
         w_dir = transdecoder_directory
     threads:
         1
+    log:
+        os.path.join(log_directory, 'TransDecoder.log')
     shell:
         'cp {input.trinity_fasta} {output.td_fasta} ; '
         'cd {output.w_dir} ; '
-        '{TransDecoder_LongOrfs} -t Trinity.fasta -S ; '
-        '{TransDecoder_Predict} -t Trinity.fasta '
+        '{TransDecoder_LongOrfs} -t Trinity.fasta -S 2> {log} ; '
+        '{TransDecoder_Predict} -t Trinity.fasta 2>> {log}'
 
 rule blastp:
     input:
@@ -135,7 +137,7 @@ rule hmmscan:
     threads:
         4
     log:
-        os.path.join(log_directory, 'hmmer.log')
+        os.path.join(log_directory, 'hmmscan.log')
     shell:
         '{hmmscan} '
         '--cpu {threads} '
