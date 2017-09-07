@@ -153,12 +153,16 @@ rule RnammerTranscriptome_pl:
         w_dir = rnammer_directory
     threads:
         1
+    log:
+        os.path.join(log_directory, 'RnammerTranscriptome_pl.log')
     shell:
+        'bash -c \''
         'cp {input.trinity_fasta} {output.rn_fasta} ; '
         'cd {output.w_dir} ; '
         '{RnammerTranscriptome_pl} '
         '--transcriptome Trinity.fasta '
         '--path_to_rnammer {rnammer}'
+        '\' &> {log}'
 
 rule tmhmm:
     input:
