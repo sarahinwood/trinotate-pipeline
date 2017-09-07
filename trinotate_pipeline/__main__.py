@@ -169,7 +169,6 @@ def main():
 
     args = vars(parser.parse_args())
     args['targets'] = [args['targets']]
-    print(args)
 
     # get a dict of full paths to pass to snakemake
     binary_to_full_path = {}
