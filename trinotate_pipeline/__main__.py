@@ -161,11 +161,15 @@ def main():
         type=str,
         dest='targets',
         default='Trinotate_report')
+    parser.add_argument(
+        '-n',
+        help='Don\'t run the pipeline. Just print the DAG and quit.',
+        dest='dry_run',
+        action='store_true')
 
     args = vars(parser.parse_args())
     args['targets'] = [args['targets']]
     print(args)
-    quit(1)
 
     # print the dag
     log_directory = os.path.join(args['outdir'], 'logs')
@@ -175,6 +179,10 @@ def main():
                 args,
                 args['targets'],
                 os.path.join(log_directory, "graph"))
+
+    # stop here if we're doing a dry run
+    if args['dry_run']:
+        return
 
     # get a dict of full paths to pass to snakemake
     binary_to_full_path = {}
