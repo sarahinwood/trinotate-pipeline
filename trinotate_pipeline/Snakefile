@@ -90,7 +90,7 @@ rule TransDecoder:
         'cd {output.w_dir} ; '
         '{TransDecoder_LongOrfs} -t Trinity.fasta -S ; '
         '{TransDecoder_Predict} -t Trinity.fasta'
-        '\' 2> {log}'
+        '\' &> {log}'
 
 rule blastp:
     input:
