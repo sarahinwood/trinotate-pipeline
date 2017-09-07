@@ -163,7 +163,7 @@ def main():
         default='Trinotate_report')
 
     args = vars(parser.parse_args())
-    args['targets'] = list(args['targets'])
+    args['targets'] = [args['targets']]
     print(args)
     quit(1)
 
