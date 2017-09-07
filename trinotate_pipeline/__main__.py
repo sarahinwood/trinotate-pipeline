@@ -160,11 +160,21 @@ def main():
         metavar='Trinotate_report',
         type=str,
         dest='targets',
-        default=['Trinotate_report'])
+        default='Trinotate_report')
 
     args = vars(parser.parse_args())
+    args['targets'] = list(args['targets'])
     print(args)
     quit(1)
+
+    # print the dag
+    log_directory = os.path.join(args['outdir'], 'logs')
+    if not os.path.isdir(log_directory):
+        os.makedirs(log_directory)
+    print_graph(snakefile,
+                args,
+                args['targets'],
+                os.path.join(log_directory, "graph"))
 
     # get a dict of full paths to pass to snakemake
     binary_to_full_path = {}
@@ -189,15 +199,6 @@ def main():
     # check if the required R packages are installed
     for x in r_packages:
         check_r_package(x)
-
-    # print the dag
-    log_directory = os.path.join(args['outdir'], 'logs')
-    if not os.path.isdir(log_directory):
-        os.makedirs(log_directory)
-    print_graph(snakefile,
-                args,
-                args['targets'],
-                os.path.join(log_directory, "graph"))
 
     # run the pipeline
     snakemake.snakemake(
