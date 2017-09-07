@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+log_file <- file(snakemake@log[[1]], open = "wt")
+sink(log_file, append = TRUE, type = "message")
+sink(log_file, append = TRUE)
+
 library(data.table)
 library(rtracklayer)
 

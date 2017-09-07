@@ -99,7 +99,7 @@ rule blastp:
     output:
         blastp_results
     threads:
-        max_threads
+        max_threads - 1
     log:
         os.path.join(log_directory, 'blastp.log')
     shell:
@@ -118,7 +118,7 @@ rule blastx:
     output:
         blastx_results
     threads:
-        max_threads
+        max_threads - 1
     log:
         os.path.join(log_directory, 'blastx.log')
     shell:
@@ -136,8 +136,10 @@ rule hmmscan:
         db = hmmer_db
     output:
         hmmer_results
+    priority:
+        1
     threads:
-        4
+        1
     log:
         os.path.join(log_directory, 'hmmscan.log')
     shell:
@@ -214,6 +216,8 @@ rule rename_gff:
         signalp_renamed_gff = signalp_renamed_gff
     threads:
         1
+    log:
+        os.path.join(log_directory, 'rename_gff.log')
     script:
         '{}'.format(rename_gff)
 
@@ -245,7 +249,10 @@ rule Trinotate_LOAD:
         trinotate_database
     threads:
         1
+    log:
+        os.path.join(log_directory, 'Trinotate_LOAD.log')
     shell:
+        'bash -c \''
         'cp {input.db} {output} ; '
         '{Trinotate} '
         '{output} init '
@@ -258,6 +265,7 @@ rule Trinotate_LOAD:
         '{Trinotate} {output} LOAD_signalp {input.signalp} ; '
         '{Trinotate} {output} LOAD_tmhmm {input.tmhmm} ; '
         '{Trinotate} {output} LOAD_rnammer {input.rnammer} '
+        '\' &> {log}'
 
 rule Trinotate_report:
     input:
