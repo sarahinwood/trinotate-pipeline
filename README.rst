@@ -3,7 +3,7 @@ trinotate_pipeline
 
 A python3 wrapper for the Trinotate_ pipeline, using snakemake_.
 
-.. image:: https://raw.githubusercontent.com/TomHarrop/trinotate_pipeline/gh-pages/_images/graph.svg
+.. image:: http://tomharrop.io/trinotate_pipeline/graph.svg
 
 Requirements
 ------------
