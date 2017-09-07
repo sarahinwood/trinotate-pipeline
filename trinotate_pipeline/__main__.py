@@ -160,7 +160,6 @@ def main():
         metavar='Trinotate_report',
         type=str,
         dest='targets',
-        action='append',
         default=['Trinotate_report'])
 
     args = vars(parser.parse_args())
