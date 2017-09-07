@@ -171,19 +171,6 @@ def main():
     args['targets'] = [args['targets']]
     print(args)
 
-    # print the dag
-    log_directory = os.path.join(args['outdir'], 'logs')
-    if not os.path.isdir(log_directory):
-        os.makedirs(log_directory)
-    print_graph(snakefile,
-                args,
-                args['targets'],
-                os.path.join(log_directory, "graph"))
-
-    # stop here if we're doing a dry run
-    if args['dry_run']:
-        return
-
     # get a dict of full paths to pass to snakemake
     binary_to_full_path = {}
     for binary in binary_to_version_suffix:
@@ -203,6 +190,19 @@ def main():
     # add the binaries to args
     for binary in binary_to_full_path:
         args[binary] = binary_to_full_path[binary]
+
+    # print the dag
+    log_directory = os.path.join(args['outdir'], 'logs')
+    if not os.path.isdir(log_directory):
+        os.makedirs(log_directory)
+    print_graph(snakefile,
+                args,
+                args['targets'],
+                os.path.join(log_directory, "graph"))
+
+    # stop here if we're doing a dry run
+    if args['dry_run']:
+        return
 
     # check if the required R packages are installed
     for x in r_packages:
