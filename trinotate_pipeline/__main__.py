@@ -45,7 +45,7 @@ def check_r_package(r_package):
 
 
 # graph printing
-def print_graph(snakefile, config, targets, dag_file):
+def print_graph(snakefile, config, targets, dag_prefix):
     # store old stdout
     stdout = sys.stdout
     # call snakemake api and capture output
@@ -59,13 +59,21 @@ def print_graph(snakefile, config, targets, dag_file):
     output = sys.stdout.getvalue()
     # restore sys.stdout
     sys.stdout = stdout
-    # pipe the output to dot
-    with open(dag_file, 'wb') as svg:
-        dot_process = subprocess.Popen(
-            ['dot', '-Tsvg'],
-            stdin=subprocess.PIPE,
-            stdout=svg)
-    dot_process.communicate(input=output.encode())
+    # write output
+    if shutil.which('dot'):
+        svg_file = '{}.svg'.format(dag_prefix)
+        # pipe the output to dot
+        with open(svg_file, 'wb') as svg:
+            dot_process = subprocess.Popen(
+                ['dot', '-Tsvg'],
+                stdin=subprocess.PIPE,
+                stdout=svg)
+        dot_process.communicate(input=output.encode())
+    else:
+        # just write the dag to file
+        dag_file = '{}.dag'.format(dag_prefix)
+        with open(dag_file, 'wt') as file:
+            file.write(output)
 
 
 ###########
@@ -188,7 +196,7 @@ def main():
     print_graph(snakefile,
                 args,
                 args['targets'],
-                os.path.join(log_directory, "graph.svg"))
+                os.path.join(log_directory, "graph"))
 
     # run the pipeline
     snakemake.snakemake(

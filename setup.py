@@ -13,7 +13,7 @@ def readme():
 
 setup(
     name='trinotate_pipeline',
-    version='0.0.5',
+    version='0.0.6',
     description='python3 wrapper for Trinotate',
     long_description=readme(),
     url='https://github.com/sarahinwood/trinotate_pipeline',
