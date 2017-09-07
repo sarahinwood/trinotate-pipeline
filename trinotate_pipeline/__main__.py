@@ -164,6 +164,7 @@ def main():
         default='Trinotate_report')
 
     args = vars(parser.parse_args())
+    print(args)
 
     # get a dict of full paths to pass to snakemake
     binary_to_full_path = {}
