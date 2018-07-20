@@ -32,7 +32,7 @@ Both may be installed from CRAN or Bioconductor.
 Installation
 ------------
 
-``pip3 install git+git://github.com/sarahinwood/trinotate_pipeline.git``
+``pip3 install git+git://github.com/tomharrop/trinotate_pipeline.git``
 
 Usage
 -----
