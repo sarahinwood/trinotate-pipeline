@@ -150,16 +150,17 @@ rule RnammerTranscriptome_pl:
         trinity_fasta = trinity_fasta
     output:
         rnammer_results,
-        rn_fasta = temp(os.path.join(rnammer_directory, 'Trinity.fasta')),
-        w_dir = rnammer_directory
+        rn_fasta = temp(os.path.join(rnammer_directory, 'Trinity.fasta'))
     threads:
         1
+    params:
+        w_dir = rnammer_directory
     log:
         os.path.join(log_directory, 'RnammerTranscriptome_pl.log')
     shell:
         'bash -c \''
         'cp {input.trinity_fasta} {output.rn_fasta} ; '
-        'cd {output.w_dir} ; '
+        'cd {params.w_dir} ; '
         '{RnammerTranscriptome_pl} '
         '--transcriptome Trinity.fasta '
         '--path_to_rnammer {rnammer}'
