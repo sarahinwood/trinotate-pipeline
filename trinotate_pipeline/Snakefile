@@ -78,16 +78,17 @@ rule TransDecoder:
         trinity_fasta = trinity_fasta
     output:
         transdecoder_results,
-        td_fasta = temp(os.path.join(transdecoder_directory, 'Trinity.fasta')),
-        w_dir = transdecoder_directory
+        td_fasta = temp(os.path.join(transdecoder_directory, 'Trinity.fasta'))
     threads:
         1
+    params:
+        w_dir = transdecoder_directory
     log:
         os.path.join(log_directory, 'TransDecoder.log')
     shell:
         'bash -c \''
         'cp {input.trinity_fasta} {output.td_fasta} ; '
-        'cd {output.w_dir} ; '
+        'cd {params.w_dir} ; '
         '{TransDecoder_LongOrfs} -t Trinity.fasta -S ; '
         '{TransDecoder_Predict} -t Trinity.fasta'
         '\' &> {log}'
