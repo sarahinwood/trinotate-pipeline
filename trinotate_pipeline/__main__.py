@@ -212,7 +212,8 @@ def main():
         snakefile=snakefile,
         config=args,
         targets=args['targets'],
-        cores=args['threads'])
+        cores=args['threads'],
+        lock=False)
 
 
 if __name__ == '__main__':
