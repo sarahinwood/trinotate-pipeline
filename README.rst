@@ -8,6 +8,8 @@ A python3 wrapper for the Trinotate_ pipeline, using snakemake_.
 Requirements
 ------------
 
+WRONG, USE SIF
+
 The Trinotate_ dependencies must be installed and in ``$PATH``:
 
 * ``TransDecoder``
