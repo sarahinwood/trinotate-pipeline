@@ -37,8 +37,8 @@ _EOF_
     apt-get update
     apt-get install -y \
         hmmer \
-        libdbi-perl \
         libdbd-sqlite3-perl \
+        libdbi-perl \
         python3-dev \
         python3-pip \
         python3-venv \
@@ -58,8 +58,7 @@ _EOF_
     # install pipeline
     /usr/bin/pip3 \
         install \
-        git+git@github.com:TomHarrop/trinotate_pipeline.git@v0.0.12
-
+        git+git://github.com/TomHarrop/trinotate_pipeline.git@v0.0.12
 
 %runscript
-    exec /usr/local/bin/trinityrnaseq/Trinity "$@"
+    exec /usr/local/bin/trinotate_pipeline "$@"
