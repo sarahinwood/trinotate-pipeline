@@ -8,6 +8,8 @@ A python3 wrapper for the Trinotate_ pipeline, using snakemake_.
 Requirements
 ------------
 
+WRONG, USE SIF
+
 The Trinotate_ dependencies must be installed and in ``$PATH``:
 
 * ``TransDecoder``
@@ -32,7 +34,7 @@ Both may be installed from CRAN or Bioconductor.
 Installation
 ------------
 
-``pip3 install git+git://github.com/sarahinwood/trinotate_pipeline.git``
+``pip3 install git+git://github.com/tomharrop/trinotate_pipeline.git``
 
 Usage
 -----

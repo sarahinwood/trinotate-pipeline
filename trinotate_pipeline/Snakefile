@@ -7,19 +7,6 @@ from trinotate_pipeline.__main__ import get_full_path
 # GLOBALS #
 ###########
 
-# binaries
-blastp = config['blastp']
-blastx = config['blastx']
-get_Trinity_gene_to_trans_map_pl = config['get_Trinity_gene_to_trans_map.pl']
-hmmscan = ['hmmscan']
-rnammer = config['rnammer']
-RnammerTranscriptome_pl = config['RnammerTranscriptome.pl']
-tmhmm = config['tmhmm']
-signalp = config['signalp']
-TransDecoder_LongOrfs = config['TransDecoder.LongOrfs']
-TransDecoder_Predict = config['TransDecoder.Predict']
-Trinotate = config['Trinotate']
-
 # from config
 blast_db = config['blast_db']
 hmmer_db = config['hmmer_db']
@@ -78,18 +65,19 @@ rule TransDecoder:
         trinity_fasta = trinity_fasta
     output:
         transdecoder_results,
-        td_fasta = temp(os.path.join(transdecoder_directory, 'Trinity.fasta')),
-        w_dir = transdecoder_directory
+        td_fasta = temp(os.path.join(transdecoder_directory, 'Trinity.fasta'))
     threads:
         1
+    params:
+        w_dir = transdecoder_directory
     log:
         os.path.join(log_directory, 'TransDecoder.log')
     shell:
         'bash -c \''
         'cp {input.trinity_fasta} {output.td_fasta} ; '
-        'cd {output.w_dir} ; '
-        '{TransDecoder_LongOrfs} -t Trinity.fasta -S ; '
-        '{TransDecoder_Predict} -t Trinity.fasta'
+        'cd {params.w_dir}  || exit 1 ; '
+        'TransDecoder.LongOrfs -t Trinity.fasta -S ; '
+        'TransDecoder.Predict -t Trinity.fasta '
         '\' &> {log}'
 
 rule blastp:
@@ -101,7 +89,7 @@ rule blastp:
     threads:
         max_threads - 1
     shell:
-        '{blastp} '
+        'blastp '
         '-db {input.db} '
         '-query {input.transdecoder_results} '
         '-num_threads {threads} '
@@ -117,7 +105,7 @@ rule blastx:
     threads:
         max_threads - 1
     shell:
-        '{blastx} '
+        'blastx '
         '-db {input.db} '
         '-query {input.trinity_fasta} '
         '-num_threads {threads} '
@@ -137,84 +125,12 @@ rule hmmscan:
     log:
         os.path.join(log_directory, 'hmmscan.log')
     shell:
-        '{hmmscan} '
+        'hmmscan '
         '--cpu {threads} '
         '--domtblout {output} '
         '{input.db} '
         '{input.transdecoder_results} '
         '> {log}'
-
-rule RnammerTranscriptome_pl:
-    input:
-        trinity_fasta = trinity_fasta
-    output:
-        rnammer_results,
-        rn_fasta = temp(os.path.join(rnammer_directory, 'Trinity.fasta')),
-        w_dir = rnammer_directory
-    threads:
-        1
-    log:
-        os.path.join(log_directory, 'RnammerTranscriptome_pl.log')
-    shell:
-        'bash -c \''
-        'cp {input.trinity_fasta} {output.rn_fasta} ; '
-        'cd {output.w_dir} ; '
-        '{RnammerTranscriptome_pl} '
-        '--transcriptome Trinity.fasta '
-        '--path_to_rnammer {rnammer}'
-        '\' &> {log}'
-
-rule tmhmm:
-    input:
-        transdecoder_results
-    output:
-        tmhmm_results
-    threads:
-        2
-    shell:
-        '{tmhmm} '
-        '-short '
-        '< {input} '
-        '> {output} '
-
-rule rename_fasta_headers:
-    input:
-        transdecoder_results = transdecoder_results
-    output:
-        renamed_transdecoder = renamed_transdecoder,
-        ids = ids
-    threads:
-        1
-    script:
-        '{}'.format(rename_fasta_headers)
-
-rule signalp:
-    input:
-        renamed_transdecoder
-    output:
-        results = signalp_results,
-        gff = signalp_gff
-    threads:
-        4
-    shell:
-        '{signalp} '
-        '-f short '
-        '-n {output.gff} '
-        '{input} '
-        '> {output.results}'
-
-rule rename_gff:
-    input:
-        signalp_gff = signalp_gff,
-        ids = ids
-    output:
-        signalp_renamed_gff = signalp_renamed_gff
-    threads:
-        1
-    log:
-        os.path.join(log_directory, 'rename_gff.log')
-    script:
-        '{}'.format(rename_gff)
 
 rule get_Trinity_gene_to_trans_map_pl:
     input:
@@ -224,7 +140,7 @@ rule get_Trinity_gene_to_trans_map_pl:
     threads:
         1
     shell:
-        '{get_Trinity_gene_to_trans_map_pl} '
+        'get_Trinity_gene_to_trans_map.pl '
         '{input} '
         '> {output}'
 
@@ -236,9 +152,6 @@ rule Trinotate_LOAD:
         blastx = blastx_results,
         blastp = blastp_results,
         hmmer = hmmer_results,
-        signalp = signalp_renamed_gff,
-        tmhmm = tmhmm_results,
-        rnammer = rnammer_results,
         db = sqlite_db
     output:
         trinotate_database
@@ -249,17 +162,14 @@ rule Trinotate_LOAD:
     shell:
         'bash -c \''
         'cp {input.db} {output} ; '
-        '{Trinotate} '
+        'Trinotate '
         '{output} init '
         '--gene_trans_map {input.gene_trans_map} '
         '--transcript_fasta {input.fasta} '
         '--transdecoder_pep {input.transdecoder} ; '
-        '{Trinotate} {output} LOAD_swissprot_blastx {input.blastx} ; '
-        '{Trinotate} {output} LOAD_swissprot_blastp {input.blastp} ; '
-        '{Trinotate} {output} LOAD_pfam {input.hmmer} ; '
-        '{Trinotate} {output} LOAD_signalp {input.signalp} ; '
-        '{Trinotate} {output} LOAD_tmhmm {input.tmhmm} ; '
-        '{Trinotate} {output} LOAD_rnammer {input.rnammer} '
+        'Trinotate {output} LOAD_swissprot_blastx {input.blastx} ; '
+        'Trinotate {output} LOAD_swissprot_blastp {input.blastp} ; '
+        'Trinotate {output} LOAD_pfam {input.hmmer} '
         '\' &> {log}'
 
 rule Trinotate_report:
@@ -272,4 +182,4 @@ rule Trinotate_report:
     log:
         os.path.join(log_directory, 'Trinotate_report.log')
     shell:
-        '{Trinotate} {input} report > {output} 2> {log}'
+        'Trinotate {input} report > {output} 2> {log}'

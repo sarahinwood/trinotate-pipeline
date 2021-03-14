@@ -82,25 +82,6 @@ def print_graph(snakefile, config, targets, dag_prefix):
 
 snakefile = resource_filename(__name__, 'Snakefile')
 
-binary_to_version_suffix = {
-    'TransDecoder.LongOrfs': None,
-    'TransDecoder.Predict': None,
-    'blastp': '-version',
-    'blastx': '-version',
-    'hmmscan': None,
-    'RnammerTranscriptome.pl': None,
-    'get_Trinity_gene_to_trans_map.pl': None,
-    'tmhmm': None,
-    'rnammer': '-v',
-    'signalp': '-V',
-    'Trinotate': None
-}
-
-r_packages = [
-    'data.table',
-    'rtracklayer'
-]
-
 
 ########
 # MAIN #
@@ -170,26 +151,6 @@ def main():
     args = vars(parser.parse_args())
     args['targets'] = [args['targets']]
 
-    # get a dict of full paths to pass to snakemake
-    binary_to_full_path = {}
-    for binary in binary_to_version_suffix:
-        # check binary is in path
-        full_path = get_full_path(binary)
-        binary_to_full_path[binary] = full_path
-        # print full path
-        pref = 'Using {}'.format(binary)
-        print('{:>38}: {}'.format(pref, full_path))
-        # if we know how to check the version, do so and print
-        if binary_to_version_suffix[binary]:
-            suffix = binary_to_version_suffix[binary]
-            version = check_binary_version(full_path, suffix)
-            pref = '{} version'.format(binary)
-            print('{:>38}: {}'.format(pref, version))
-
-    # add the binaries to args
-    for binary in binary_to_full_path:
-        args[binary] = binary_to_full_path[binary]
-
     # print the dag
     log_directory = os.path.join(args['outdir'], 'logs')
     if not os.path.isdir(log_directory):
@@ -203,17 +164,13 @@ def main():
     if args['dry_run']:
         return
 
-    # check if the required R packages are installed
-    for x in r_packages:
-        check_r_package(x)
-
     # run the pipeline
     snakemake.snakemake(
         snakefile=snakefile,
         config=args,
         targets=args['targets'],
         cores=args['threads'],
-        timestamp=True)
+        lock=False)
 
 
 if __name__ == '__main__':

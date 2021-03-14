@@ -13,12 +13,12 @@ def readme():
 
 setup(
     name='trinotate_pipeline',
-    version='0.0.8',
+    version='0.0.12',
     description='python3 wrapper for Trinotate',
     long_description=readme(),
-    url='https://github.com/sarahinwood/trinotate_pipeline',
-    author='Sarah Inwood, Tom Harrop',
-    author_email='sninwood@gmail.com, twharrop@gmail.com',
+    url='https://github.com/tomaharrop/trinotate_pipeline',
+    author='Tom Harrop, Sarah Inwood',
+    author_email='twharrop@gmail.com, sninwood@gmail.com',
     license='GPL-3',
     packages=find_packages(),
     install_requires=[
